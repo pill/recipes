@@ -1,0 +1,46 @@
+{
+  "name": "reddit-recipes",
+  "version": "1.0.0",
+  "description": "AI-powered Reddit recipes data parser and analyzer",
+  "main": "main.ts",
+  "scripts": {
+    "dev": "tsx main.ts",
+    "build": "tsc",
+    "start": "node dist/main.js",
+    "test-db": "tsx test-db.ts",
+    "csv-to-json": "tsx data/csv_to_json.ts",
+    "setup-db": "./setup-db.sh",
+    "docker:setup": "./docker-setup.sh",
+    "docker:start": "docker-compose up -d postgres",
+    "docker:stop": "docker-compose down",
+    "docker:logs": "docker-compose logs -f postgres",
+    "docker:reset": "docker-compose down -v && docker volume rm reddit-recipes_postgres_data reddit-recipes_pgadmin_data 2>/dev/null || true"
+  },
+  "keywords": [
+    "reddit",
+    "recipes",
+    "ai",
+    "data-parsing"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@ai-sdk/anthropic": "^2.0.23",
+    "@ai-sdk/google": "^2.0.17",
+    "@ai-sdk/openai": "^2.0.42",
+    "@anthropic-ai/sdk": "^0.30.1",
+    "@types/pg": "^8.15.5",
+    "ai": "^5.0.60",
+    "csv-parser": "^3.2.0",
+    "dotenv": "^17.2.3",
+    "openai": "^4.42.0",
+    "pg": "^8.16.3",
+    "ts-node": "^10.9.2",
+    "zod": "^3.22.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "tsx": "^4.0.0",
+    "typescript": "^5.9.3"
+  }
+}
