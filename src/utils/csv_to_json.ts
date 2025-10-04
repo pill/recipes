@@ -18,8 +18,8 @@ It will use the RecipeSchema to parse the data.
 // Load environment variables from .env file FIRST
 config();
 
-import { getAIService, AIResponse } from './services/AIService';
-import { RecipeExtractionSchema } from './schemas/recipe-extraction';
+import { getAIService, AIResponse } from '../services/AIService';
+import { RecipeExtractionSchema } from '../schemas/recipe-extraction';
 
 // this is the CSV format of the reddit recipes dataset
 type RowData = {

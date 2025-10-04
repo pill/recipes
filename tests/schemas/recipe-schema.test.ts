@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { RecipeSchema, RecipeIngredientSchema, RecipeInstructionSchema } from './recipe-schema';
+import { RecipeSchema, RecipeIngredientSchema, RecipeInstructionSchema } from '../../src/schemas/recipe-schema';
 
 describe('Recipe Schema', () => {
   describe('RecipeIngredientSchema', () => {

@@ -1,5 +1,5 @@
 import { RecipeSchema } from './recipe-schema';
-import sampleData from '../data/samples/sample-json.json';
+import sampleData from '../../data/samples/sample-json.json';
 
 // Function to validate the sample JSON against our Zod schema
 export function validateSampleData() {

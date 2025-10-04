@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { Recipe, Ingredient, Measurement, RecipeIngredient, RecipeFilters } from './Recipe';
+import { Recipe, Ingredient, Measurement, RecipeIngredient, RecipeFilters } from '../../src/models/Recipe';
 
 describe('Recipe Model', () => {
   describe('Recipe interface', () => {

@@ -1,8 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 // Mock the entire AIService module
-vi.mock('./AIService', async () => {
-  const actual = await vi.importActual('./AIService');
+vi.mock('../../src/services/AIService', async () => {
+  const actual = await vi.importActual('../../src/services/AIService');
   return {
     ...actual,
     AIService: class MockAIService {
@@ -63,7 +63,7 @@ vi.mock('./AIService', async () => {
   };
 });
 
-import { AIService, getAIService } from './AIService';
+import { AIService, getAIService } from '../../src/services/AIService';
 
 describe('AIService (Mocked)', () => {
   const originalEnv = process.env;

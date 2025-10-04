@@ -1,6 +1,5 @@
 import { RecipeSchema } from '../schemas/recipe-schema';
 import { getAIService } from '../services/AIService';
-
 // Example Reddit post text (you would replace this with actual Reddit post content)
 const sampleRedditPost = `
 Title: Easy Tiramisu Recipe (no raw eggs!)
@@ -31,46 +30,36 @@ Prep time: 30 minutes
 Chill time: at least 6 hours
 Pan size: 8x5 in
 `;
-
 async function demonstrateRecipeExtraction() {
-  try {
-    console.log('🍰 Demonstrating recipe extraction with Zod schema...\n');
-    
-    const aiService = getAIService();
-    
-    // Method 1: Using the generic extractStructuredData method
-    console.log('Method 1: Using extractStructuredData with RecipeSchema');
-    const recipeData = await aiService.extractStructuredData(
-      sampleRedditPost,
-      RecipeSchema,
-      {
-        model: 'claude-3-haiku-20240307',
-        systemPrompt: 'You are an expert at extracting detailed recipe information from Reddit posts. Focus on accuracy and completeness.'
-      }
-    );
-    
-    console.log('✅ Successfully extracted recipe data:');
-    console.log(`Title: ${recipeData.title}`);
-    console.log(`Description: ${recipeData.description}`);
-    console.log(`Ingredients: ${recipeData.ingredients.length} items`);
-    console.log(`Instructions: ${recipeData.instructions.length} steps`);
-    console.log(`Prep Time: ${recipeData.prepTime}`);
-    console.log(`Chill Time: ${recipeData.chillTime}`);
-    console.log(`Pan Size: ${recipeData.panSize}`);
-    
-    // Method 2: Using the specialized extractRecipeData method (when the linting issue is fixed)
-    // console.log('\nMethod 2: Using extractRecipeData method');
-    // const recipeData2 = await aiService.extractRecipeData(sampleRedditPost);
-    // console.log('✅ Recipe extracted using specialized method');
-    
-  } catch (error) {
-    console.error('❌ Error during recipe extraction:', error);
-  }
+    try {
+        console.log('🍰 Demonstrating recipe extraction with Zod schema...\n');
+        const aiService = getAIService();
+        // Method 1: Using the generic extractStructuredData method
+        console.log('Method 1: Using extractStructuredData with RecipeSchema');
+        const recipeData = await aiService.extractStructuredData(sampleRedditPost, RecipeSchema, {
+            model: 'claude-3-haiku-20240307',
+            systemPrompt: 'You are an expert at extracting detailed recipe information from Reddit posts. Focus on accuracy and completeness.'
+        });
+        console.log('✅ Successfully extracted recipe data:');
+        console.log(`Title: ${recipeData.title}`);
+        console.log(`Description: ${recipeData.description}`);
+        console.log(`Ingredients: ${recipeData.ingredients.length} items`);
+        console.log(`Instructions: ${recipeData.instructions.length} steps`);
+        console.log(`Prep Time: ${recipeData.prepTime}`);
+        console.log(`Chill Time: ${recipeData.chillTime}`);
+        console.log(`Pan Size: ${recipeData.panSize}`);
+        // Method 2: Using the specialized extractRecipeData method (when the linting issue is fixed)
+        // console.log('\nMethod 2: Using extractRecipeData method');
+        // const recipeData2 = await aiService.extractRecipeData(sampleRedditPost);
+        // console.log('✅ Recipe extracted using specialized method');
+    }
+    catch (error) {
+        console.error('❌ Error during recipe extraction:', error);
+    }
 }
-
 // Run the demonstration if this file is executed directly
 if (require.main === module) {
-  demonstrateRecipeExtraction();
+    demonstrateRecipeExtraction();
 }
-
 export { demonstrateRecipeExtraction };
+//# sourceMappingURL=recipe-extraction-example.js.map

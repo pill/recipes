@@ -157,7 +157,7 @@ Return only the JSON object, no additional text.`;
    */
   async extractStructuredData<T>(
     text: string,
-    schema: z.ZodSchema<T>,
+    schema: any,
     options: {
       model?: string;
       maxTokens?: number;
@@ -177,8 +177,7 @@ Return only the JSON object, no additional text.`;
         prompt: `Extract the following information from the text:
 
 ${text}`,
-        system: systemPrompt || 'You are an expert at extracting structured data from text. Return only the requested information in the exact format specified.',
-        maxTokens
+        system: systemPrompt || 'You are an expert at extracting structured data from text. Return only the requested information in the exact format specified.'
       });
 
       return result.object;

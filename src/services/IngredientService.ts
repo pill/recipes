@@ -113,7 +113,7 @@ export class IngredientService {
   static async deleteIngredient(id: number): Promise<boolean> {
     const query = 'DELETE FROM ingredients WHERE id = $1';
     const result = await pool.query(query, [id]);
-    return result.rowCount > 0;
+    return (result.rowCount ?? 0) > 0;
   }
   
   // Create a new measurement
@@ -226,7 +226,7 @@ export class IngredientService {
   static async deleteMeasurement(id: number): Promise<boolean> {
     const query = 'DELETE FROM measurements WHERE id = $1';
     const result = await pool.query(query, [id]);
-    return result.rowCount > 0;
+    return (result.rowCount ?? 0) > 0;
   }
   
   // Get or create ingredient (useful for bulk operations)
@@ -245,7 +245,7 @@ export class IngredientService {
     let measurement = await this.getMeasurementByName(name);
     
     if (!measurement) {
-      measurement = await this.createMeasurement({ name, abbreviation, unitType });
+        measurement = await this.createMeasurement({ name, abbreviation, unit_type: unitType as any });
     }
     
     return measurement;

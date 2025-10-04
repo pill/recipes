@@ -1,6 +1,6 @@
-import { testConnection, closeConnection } from '../database';
-import { RecipeService } from '../services/RecipeService';
-import { Recipe } from '../models/Recipe';
+import { testConnection, closeConnection } from '../src/database';
+import { RecipeService } from '../src/services/RecipeService';
+import { Recipe } from '../src/models/Recipe';
 
 async function testDatabase() {
   console.log('🍳 Testing Reddit Recipes Database');
@@ -21,15 +21,15 @@ async function testDatabase() {
       title: 'Chocolate Chip Cookies',
       description: 'Classic homemade chocolate chip cookies',
       ingredients: [
-        { name: 'all-purpose flour', amount: 2.25, unit: 'cups' },
-        { name: 'butter', amount: 1, unit: 'cup' },
-        { name: 'brown sugar', amount: 0.75, unit: 'cup' },
-        { name: 'white sugar', amount: 0.5, unit: 'cup' },
-        { name: 'chocolate chips', amount: 2, unit: 'cups' },
-        { name: 'eggs', amount: 2, unit: 'large' },
-        { name: 'vanilla extract', amount: 2, unit: 'tsp' },
-        { name: 'baking soda', amount: 1, unit: 'tsp' },
-        { name: 'salt', amount: 1, unit: 'tsp' }
+        { ingredient_id: 1, amount: 2.25, ingredient: { name: 'all-purpose flour' }, measurement: { name: 'cups' } },
+        { ingredient_id: 2, amount: 1, ingredient: { name: 'butter' }, measurement: { name: 'cup' } },
+        { ingredient_id: 3, amount: 0.75, ingredient: { name: 'brown sugar' }, measurement: { name: 'cup' } },
+        { ingredient_id: 4, amount: 0.5, ingredient: { name: 'white sugar' }, measurement: { name: 'cup' } },
+        { ingredient_id: 5, amount: 2, ingredient: { name: 'chocolate chips' }, measurement: { name: 'cups' } },
+        { ingredient_id: 6, amount: 2, ingredient: { name: 'eggs' }, measurement: { name: 'large' } },
+        { ingredient_id: 7, amount: 2, ingredient: { name: 'vanilla extract' }, measurement: { name: 'tsp' } },
+        { ingredient_id: 8, amount: 1, ingredient: { name: 'baking soda' }, measurement: { name: 'tsp' } },
+        { ingredient_id: 9, amount: 1, ingredient: { name: 'salt' }, measurement: { name: 'tsp' } }
       ],
       instructions: [
         'Preheat oven to 375°F (190°C)',
