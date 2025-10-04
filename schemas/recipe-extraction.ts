@@ -6,7 +6,8 @@ export const RecipeExtractionSchema = z.object({
   description: z.string().optional().describe('Brief description of the recipe'),
   ingredients: z.array(z.object({
     name: z.string().describe('Ingredient name'),
-    amount: z.string().optional().describe('Amount (e.g., "2 cups", "1 lb")'),
+    quantity: z.number().optional().describe('Numeric quantity (e.g., 2, 1.5, 0.5)'),
+    unit: z.string().optional().describe('Unit of measurement (e.g., "cups", "lbs", "tbsp", "tsp")'),
     notes: z.string().optional().describe('Additional notes or preparation instructions')
   })).describe('List of ingredients'),
   instructions: z.array(z.string()).describe('Step-by-step cooking instructions'),

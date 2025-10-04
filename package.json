@@ -6,11 +6,13 @@
   "scripts": {
     "dev": "tsx main.ts",
     "build": "tsc",
-    "start": "node dist/main.js",
+    "test": "vitest",
+    "test:ui": "vitest --ui",
+    "test:run": "vitest run",
+    "test:coverage": "vitest run --coverage",
     "test-db": "tsx test-db.ts",
     "csv-to-json": "tsx data/csv_to_json.ts",
     "setup-db": "./setup-db.sh",
-    "docker:setup": "./docker-setup.sh",
     "docker:start": "docker-compose up -d postgres",
     "docker:stop": "docker-compose down",
     "docker:logs": "docker-compose logs -f postgres",
@@ -40,7 +42,10 @@
   },
   "devDependencies": {
     "@types/node": "^20.0.0",
+    "@vitest/coverage-v8": "^3.2.4",
+    "@vitest/ui": "^3.2.4",
     "tsx": "^4.0.0",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "vitest": "^3.2.4"
   }
 }

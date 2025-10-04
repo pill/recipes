@@ -37,12 +37,6 @@ const filePath: string = 'data/raw/Reddit_Recipes.csv';
 async function processRecipes() {
   const aiService = getAIService();
   
-  // Debug environment variables
-  console.log('Environment check:');
-  console.log('ANTHROPIC_API_KEY exists:', !!process.env.ANTHROPIC_API_KEY);
-  console.log('ANTHROPIC_API_KEY length:', process.env.ANTHROPIC_API_KEY?.length || 0);
-  console.log('ANTHROPIC_API_KEY starts with:', process.env.ANTHROPIC_API_KEY?.substring(0, 10) || 'undefined');
-  
   // Test AI service
   if (aiService.isConfigured()) {
     console.log('AI Service is configured. Testing...');
@@ -71,22 +65,9 @@ async function processRecipes() {
       }
     })
     .on('end', async () => {
-      console.log('finished!');
-      //if (promises.length > 0) {
-        // only do first one to test
-        // const results = await Promise.all([promises[0]]);
-    
-        // const result = comments[0];
-        // console.log(comments[0])
-        
-        // const result = await aiService.sendMessage('Parse the following recipe into json: ' + comments[0])
         const result = await aiService.extractStructuredData(comments[0], RecipeExtractionSchema)
         console.log('result:')
         console.log(result)
-
-        //console.log('AI processing completed:', result, 'recipes processed');
-        // console.log(result.content);
-      //}
     });
 
 }

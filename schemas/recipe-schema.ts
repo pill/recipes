@@ -18,8 +18,8 @@ export const RecipeInstructionSchema = z.object({
 export const RecipeSchema = z.object({
   title: z.string().describe('The recipe title'),
   description: z.string().optional().describe('Brief description of the recipe'),
-  ingredients: z.array(RecipeIngredientSchema).describe('List of ingredients with amounts and notes'),
-  instructions: z.array(RecipeInstructionSchema).describe('Step-by-step cooking instructions with titles and descriptions'),
+  ingredients: z.array(RecipeIngredientSchema).min(1).describe('List of ingredients with amounts and notes'),
+  instructions: z.array(RecipeInstructionSchema).min(1).describe('Step-by-step cooking instructions with titles and descriptions'),
   prepTime: z.string().optional().describe('Preparation time (e.g., "30 minutes")'),
   chillTime: z.string().optional().describe('Chilling/resting time (e.g., "at least 6 hours")'),
   panSize: z.string().optional().describe('Required pan or dish size (e.g., "8x5 in")')

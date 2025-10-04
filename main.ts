@@ -28,9 +28,9 @@ async function main() {
 
 
 
-        console.log('Response:', response.content[0].text);
+        console.log('Response:', response.content[0].type === 'text' ? response.content[0].text : 'Non-text response');
     } catch (error) {
-        console.error('Error:', error.message);
+        console.error('Error:', error instanceof Error ? error.message : 'Unknown error');
         console.log('\n💡 Note: Make sure to set your ANTHROPIC_API_KEY environment variable');
         console.log('   Get your API key at: https://console.anthropic.com/');
     }

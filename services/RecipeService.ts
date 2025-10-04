@@ -52,7 +52,11 @@ export class RecipeService {
       await client.query('COMMIT');
       
       // Fetch the complete recipe with ingredients
-      return await this.getById(newRecipe.id);
+      const completeRecipe = await this.getById(newRecipe.id);
+      if (!completeRecipe) {
+        throw new Error('Failed to fetch created recipe');
+      }
+      return completeRecipe;
       
     } catch (error) {
       await client.query('ROLLBACK');
@@ -326,7 +330,7 @@ export class RecipeService {
   static async delete(id: number): Promise<boolean> {
     const query = 'DELETE FROM recipes WHERE id = $1';
     const result = await pool.query(query, [id]);
-    return result.rowCount > 0;
+    return (result.rowCount ?? 0) > 0;
   }
   
   // Get recipe statistics
