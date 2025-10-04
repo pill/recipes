@@ -10,6 +10,8 @@ I'm just playing with some AI tools to parse the data.
     - standardized interaction with AI models
 - Zod
     - Typescript schema validation
+- vitest
+
 
 ## Ideas
 
