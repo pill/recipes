@@ -17,6 +17,12 @@ I'm just playing with some AI tools to parse the data.
 
 ### Extract
 - category
+
+- use vercel to exract structured data
+- process in batch?
+- use temportal to orchestrate/control flow
+
+
 - ingredients
 - relative amounts
 - description
