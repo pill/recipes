@@ -11,3 +11,7 @@
 - Run tests after making code changes, `npm test`
 - Fix any test or type errors until the whole suite is green.
 - Add or update tests for the code you change, even if nobody asked.
+
+
+## Documentation
+- Update documentation when you add or update functionality

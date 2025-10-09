@@ -3,6 +3,41 @@
 First dataset is Reddit Recipes from [kaggle](https://www.kaggle.com/datasets/michau96/recipes-from-reddit)
 I'm just playing with some AI tools to parse the data.
 
+## Running things
+
+### Transform one recipe from CSV (single entry)
+```bash
+npm run build
+node dist/src/utils/csv_to_json.js data/raw/Reddit_Recipes.csv 5
+cat data/stage/Reddit_Recipes_entry_5.json
+```
+
+### Transform multiple recipes using Temporal workflows (recommended for batches)
+
+**Prerequisites:** Install and start Temporal server (see [TEMPORAL_GUIDE.md](./TEMPORAL_GUIDE.md))
+
+```bash
+# Terminal 1: Start the worker
+npm run worker
+
+# Terminal 2: Process entries 1-20 with 1.5 second delay between each
+npm run client -- data/raw/Reddit_Recipes.csv 1 20 1500
+```
+
+**Benefits:**
+- Built-in rate limiting to avoid API limits
+- Automatic retry on failures
+- Resume from where you left off if interrupted
+- Monitor progress in Temporal Web UI (http://localhost:8233)
+- Scale with multiple workers
+
+See [TEMPORAL_GUIDE.md](./TEMPORAL_GUIDE.md) for complete documentation.
+
+
+
+
+
+
 ## Tech (so far)
 - Typescript
 - Postgres
@@ -10,6 +45,8 @@ I'm just playing with some AI tools to parse the data.
     - standardized interaction with AI models
 - Zod
     - Typescript schema validation
+- Temporal
+    - workflow orchestration and rate limiting
 - vitest
 
 
