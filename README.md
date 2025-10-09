@@ -1,4 +1,4 @@
-# Recipies
+# Recipes
 
 First dataset is Reddit Recipes from [kaggle](https://www.kaggle.com/datasets/michau96/recipes-from-reddit)
 I'm just playing with some AI tools to parse the data.
