@@ -273,6 +273,64 @@ npm run client -- data/raw/Reddit_Recipes_2.csv 1 50 1500
 
 Each workflow runs independently and worker distributes the load.
 
+## Database Loading Workflow
+
+Load extracted JSON files into the database efficiently.
+
+### Quick Start
+
+```bash
+# Terminal 1: Worker (if not already running)
+npm run worker
+
+# Terminal 2: Load all JSON files from data/stage
+npm run client:load -- data/stage/
+```
+
+### Command Syntax
+
+```bash
+npm run client:load -- <directory-or-pattern> [delay-ms]
+```
+
+**Examples:**
+
+```bash
+# Load all JSON files from a directory
+npm run client:load -- data/stage/
+
+# Load with a specific delay (100ms between inserts)
+npm run client:load -- data/stage/ 100
+
+# Note: Database operations are fast, so delays can be minimal
+```
+
+### Features
+
+- **Duplicate Detection**: Automatically skips recipes already in database (by title)
+- **Fast Processing**: Typical rate is 10+ recipes/second
+- **Error Handling**: Failed inserts are logged but don't stop the workflow
+- **Resume Support**: Can re-run to process any new files added to directory
+
+### Monitoring
+
+Track database loading in Temporal Web UI:
+- View real-time progress
+- See which recipes were inserted vs skipped
+- Check for any errors
+
+### Example Output
+
+```
+==========================================
+Database Loading Complete!
+==========================================
+Total Processed: 50
+Successfully Inserted: 45
+Already Exists (skipped): 3
+Failed: 2
+```
+
 ## Benefits of Using Temporal
 
 1. **Reliability**: Workflows survive process crashes and restarts
@@ -281,4 +339,5 @@ Each workflow runs independently and worker distributes the load.
 4. **Scalability**: Add more workers to process faster
 5. **Idempotency**: Already-processed entries are skipped
 6. **Resume**: Continue from where you left off if interrupted
+7. **Dual Workflows**: Extract from CSV and load to database in separate workflows
 

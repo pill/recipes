@@ -37,6 +37,7 @@ See [TEMPORAL_GUIDE.md](./TEMPORAL_GUIDE.md) for complete documentation.
 
 After processing CSV entries into JSON, load them into the database:
 
+**Single recipe (manual):**
 ```bash
 # Load a single recipe from JSON file
 npm run build
@@ -46,11 +47,24 @@ node dist/src/utils/load_json_to_db.js data/stage/Reddit_Recipes_entry_5.json
 npm run load-to-db data/stage/Reddit_Recipes_entry_5.json
 ```
 
+**Batch loading (recommended - using Temporal):**
+```bash
+# Terminal 1: Start the worker (if not already running)
+npm run worker
+
+# Terminal 2: Load all JSON files from data/stage directory
+npm run client:load -- data/stage/
+
+# Or load all with a specific pattern
+npm run client:load -- "data/stage/*.json" 100
+```
+
 **Features:**
 - Automatically checks if recipe already exists (by title)
 - Skips duplicate recipes
 - Creates ingredients and measurements automatically
 - Returns the created recipe ID
+- Temporal workflow provides: reliability, resumability, and monitoring
 
 **Prerequisites:** Database must be running and configured (see docker setup below)
 

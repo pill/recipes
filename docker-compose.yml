@@ -6,7 +6,7 @@ services:
     container_name: reddit-recipes-db
     restart: unless-stopped
     environment:
-      POSTGRES_DB: reddit_recipes
+      POSTGRES_DB: recipes
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
       POSTGRES_INITDB_ARGS: "--encoding=UTF-8"
@@ -14,10 +14,10 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
-      - ./schema.sql:/docker-entrypoint-initdb.d/schema.sql
+      - ./db/init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
+      - ./db/schema.sql:/docker-entrypoint-initdb.d/schema.sql
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d reddit_recipes"]
+      test: ["CMD-SHELL", "pg_isready -U postgres -d recipes"]
       interval: 10s
       timeout: 5s
       retries: 5

@@ -2,8 +2,8 @@ import { proxyActivities, sleep } from '@temporalio/workflow'
 import type * as activities from './activities'
 
 // Proxy activities with timeout settings
-const { processRecipeEntry } = proxyActivities<typeof activities>({
-  startToCloseTimeout: '10 minutes', // Max time for a single recipe extraction
+const { processRecipeEntry, loadJsonToDb } = proxyActivities<typeof activities>({
+  startToCloseTimeout: '10 minutes', // Max time for a single recipe extraction/load
   retry: {
     initialInterval: '5s',
     maximumInterval: '1m',
@@ -106,6 +106,105 @@ export async function processRecipeBatch(
 
   console.log(`[Workflow] Batch processing complete!`)
   console.log(`[Workflow] Total: ${results.totalProcessed}, Success: ${results.successful}, Skipped: ${results.skipped}, Failed: ${results.failed}`)
+
+  return results
+}
+
+// ============================================================================
+// Database Loading Workflows
+// ============================================================================
+
+export interface LoadRecipesToDbInput {
+  jsonFilePaths: string[] // Array of JSON file paths to load
+  delayBetweenActivitiesMs?: number // Delay between database inserts (default: 100ms)
+}
+
+export interface LoadRecipesToDbResult {
+  totalProcessed: number
+  successful: number
+  alreadyExists: number
+  failed: number
+  results: Array<{
+    jsonFilePath: string
+    success: boolean
+    recipeId?: number
+    title?: string
+    alreadyExists?: boolean
+    error?: string
+  }>
+}
+
+/**
+ * Workflow to load multiple recipe JSON files into the database
+ * 
+ * This workflow processes files sequentially with minimal delays
+ * since database operations don't have the same rate limits as AI APIs.
+ */
+export async function loadRecipesToDb(
+  input: LoadRecipesToDbInput
+): Promise<LoadRecipesToDbResult> {
+  const { jsonFilePaths, delayBetweenActivitiesMs = 100 } = input
+
+  console.log(`[Workflow] Loading ${jsonFilePaths.length} recipe files to database`)
+  console.log(`[Workflow] Delay between activities: ${delayBetweenActivitiesMs}ms`)
+
+  const results: LoadRecipesToDbResult = {
+    totalProcessed: 0,
+    successful: 0,
+    alreadyExists: 0,
+    failed: 0,
+    results: []
+  }
+
+  // Process each JSON file sequentially
+  for (let i = 0; i < jsonFilePaths.length; i++) {
+    const jsonFilePath = jsonFilePaths[i]
+    console.log(`[Workflow] Processing file ${i + 1}/${jsonFilePaths.length}: ${jsonFilePath}`)
+
+    try {
+      const result = await loadJsonToDb({ jsonFilePath })
+
+      results.totalProcessed++
+
+      if (result.success) {
+        if (result.alreadyExists) {
+          results.alreadyExists++
+        } else {
+          results.successful++
+        }
+      } else {
+        results.failed++
+      }
+
+      results.results.push({
+        jsonFilePath: result.jsonFilePath,
+        success: result.success,
+        recipeId: result.recipeId,
+        title: result.title,
+        alreadyExists: result.alreadyExists,
+        error: result.error
+      })
+
+      // Add delay between activities (except for last file)
+      if (i < jsonFilePaths.length - 1 && delayBetweenActivitiesMs > 0) {
+        await sleep(delayBetweenActivitiesMs)
+      }
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error)
+      console.error(`[Workflow] Error loading file ${jsonFilePath}:`, errorMessage)
+      
+      results.totalProcessed++
+      results.failed++
+      results.results.push({
+        jsonFilePath,
+        success: false,
+        error: errorMessage
+      })
+    }
+  }
+
+  console.log(`[Workflow] Database loading complete!`)
+  console.log(`[Workflow] Total: ${results.totalProcessed}, Success: ${results.successful}, Already Exists: ${results.alreadyExists}, Failed: ${results.failed}`)
 
   return results
 }

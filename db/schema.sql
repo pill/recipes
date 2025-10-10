@@ -1,5 +1,5 @@
 -- Create the database (run this manually if database doesn't exist)
--- CREATE DATABASE reddit_recipes;
+-- CREATE DATABASE recipes;
 
 -- Create ingredients table
 CREATE TABLE IF NOT EXISTS ingredients (
@@ -19,19 +19,6 @@ CREATE TABLE IF NOT EXISTS measurements (
     unit_type VARCHAR(50), -- e.g., 'volume', 'weight', 'count', 'length'
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-);
-
--- Create recipe_ingredients junction table
-CREATE TABLE IF NOT EXISTS recipe_ingredients (
-    id SERIAL PRIMARY KEY,
-    recipe_id INTEGER NOT NULL REFERENCES recipes(id) ON DELETE CASCADE,
-    ingredient_id INTEGER NOT NULL REFERENCES ingredients(id) ON DELETE CASCADE,
-    measurement_id INTEGER REFERENCES measurements(id) ON DELETE SET NULL,
-    amount DECIMAL(10,3), -- Can store fractional amounts like 1.5
-    notes TEXT, -- Additional notes like "chopped", "diced", "optional"
-    order_index INTEGER, -- Order of ingredients in the recipe
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    UNIQUE(recipe_id, ingredient_id, order_index)
 );
 
 -- Create recipes table
@@ -55,6 +42,19 @@ CREATE TABLE IF NOT EXISTS recipes (
     reddit_comments_count INTEGER,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Create recipe_ingredients junction table
+CREATE TABLE IF NOT EXISTS recipe_ingredients (
+    id SERIAL PRIMARY KEY,
+    recipe_id INTEGER NOT NULL REFERENCES recipes(id) ON DELETE CASCADE,
+    ingredient_id INTEGER NOT NULL REFERENCES ingredients(id) ON DELETE CASCADE,
+    measurement_id INTEGER REFERENCES measurements(id) ON DELETE SET NULL,
+    amount DECIMAL(10,3), -- Can store fractional amounts like 1.5
+    notes TEXT, -- Additional notes like "chopped", "diced", "optional"
+    order_index INTEGER, -- Order of ingredients in the recipe
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    UNIQUE(recipe_id, ingredient_id, order_index)
 );
 
 -- Create indexes for better performance
