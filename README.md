@@ -33,6 +33,31 @@ npm run client -- data/raw/Reddit_Recipes.csv 1 20 1500
 
 See [TEMPORAL_GUIDE.md](./TEMPORAL_GUIDE.md) for complete documentation.
 
+### Load recipe JSON into database
+
+After processing CSV entries into JSON, load them into the database:
+
+```bash
+# Load a single recipe from JSON file
+npm run build
+node dist/src/utils/load_json_to_db.js data/stage/Reddit_Recipes_entry_5.json
+
+# Or use the npm script
+npm run load-to-db data/stage/Reddit_Recipes_entry_5.json
+```
+
+**Features:**
+- Automatically checks if recipe already exists (by title)
+- Skips duplicate recipes
+- Creates ingredients and measurements automatically
+- Returns the created recipe ID
+
+**Prerequisites:** Database must be running and configured (see docker setup below)
+
+---
+
+**📚 Complete Pipeline Guide**: See [PIPELINE_EXAMPLE.md](./PIPELINE_EXAMPLE.md) for end-to-end examples of processing hundreds of recipes from CSV to database.
+
 
 
 

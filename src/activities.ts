@@ -96,7 +96,23 @@ export async function processRecipeEntry(
 
     const result = await aiService.extractStructuredData(
       targetRow.comment,
-      RecipeExtractionSchema
+      RecipeExtractionSchema,
+      {
+        systemPrompt: `You are an expert at extracting recipe information from Reddit posts. 
+Extract as much information as possible, even if incomplete. 
+If a field cannot be determined, use null or omit it.
+
+IMPORTANT for ingredients: 
+- ALWAYS separate quantity and unit into different fields
+- quantity: ONLY the number (e.g., 2, 1.5, "1-2")
+- unit: ONLY the measurement unit (e.g., "cups", "tablespoons", "grams")
+- Example: "2 cups flour" → quantity: 2, unit: "cups", name: "flour"
+- Example: "1-2 lbs chicken" → quantity: "1-2", unit: "lbs", name: "chicken"
+
+For instructions: break down the steps clearly.
+Be flexible with format - Reddit posts may have informal recipe descriptions.
+If the text is not a recipe at all, still try to extract any food-related information.`
+      }
     )
 
     // Save result with metadata

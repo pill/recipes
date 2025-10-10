@@ -12,6 +12,7 @@
     "test:coverage": "vitest run --coverage",
     "test-db": "tsx scripts/test-db.ts",
     "csv-to-json": "tsx src/utils/csv_to_json.ts",
+    "load-to-db": "tsx src/utils/load_json_to_db.ts",
     "worker": "tsx src/worker.ts",
     "client": "tsx src/client.ts",
     "setup-db": "./scripts/setup-db.sh",
