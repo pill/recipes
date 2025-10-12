@@ -30,7 +30,7 @@ CREATE TABLE IF NOT EXISTS recipes (
     prep_time_minutes INTEGER,
     cook_time_minutes INTEGER,
     total_time_minutes INTEGER,
-    servings INTEGER,
+    servings DECIMAL(10,2), -- Allow fractional servings like 1.5 or 3.5
     difficulty VARCHAR(20) CHECK (difficulty IN ('easy', 'medium', 'hard')),
     cuisine_type VARCHAR(100),
     meal_type VARCHAR(20) CHECK (meal_type IN ('breakfast', 'lunch', 'dinner', 'snack', 'dessert')),

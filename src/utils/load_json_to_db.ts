@@ -71,6 +71,18 @@ function parseNumericValue(value: number | string | null | undefined): number | 
 }
 
 /**
+ * Parse integer values (rounds decimals for INTEGER database fields)
+ * Examples: "1.5" -> 2, "3.5" -> 4, 5 -> 5, "2-4" -> 2
+ */
+function parseIntegerValue(value: number | string | null | undefined): number | undefined {
+  const numericValue = parseNumericValue(value)
+  if (numericValue === undefined) return undefined
+  
+  // Round to nearest integer for fields that must be integers
+  return Math.round(numericValue)
+}
+
+/**
  * Map RecipeExtraction to Recipe format for database insertion
  */
 function mapRecipeExtractionToRecipe(
@@ -123,10 +135,10 @@ function mapRecipeExtractionToRecipe(
     return undefined
   }
 
-  // Parse numeric values (handles both numbers and strings like "2-4")
-  const prepTime = parseNumericValue(data.prepTime)
-  const cookTime = parseNumericValue(data.cookTime)
-  const servings = parseNumericValue(data.servings)
+  // Parse numeric values (use parseIntegerValue for INTEGER database fields)
+  const prepTime = parseIntegerValue(data.prepTime)
+  const cookTime = parseIntegerValue(data.cookTime)
+  const servings = parseIntegerValue(data.servings)
 
   return {
     title: data.title || metadata.title || 'Untitled Recipe',

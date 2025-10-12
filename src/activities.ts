@@ -296,6 +296,14 @@ function parseNumericValue(value: number | string | null | undefined): number | 
   return undefined
 }
 
+function parseIntegerValue(value: number | string | null | undefined): number | undefined {
+  const numericValue = parseNumericValue(value)
+  if (numericValue === undefined) return undefined
+  
+  // Round to nearest integer for fields that must be integers
+  return Math.round(numericValue)
+}
+
 function normalizeDifficulty(diff: string | null | undefined): 'easy' | 'medium' | 'hard' | undefined {
   if (!diff) return undefined
   const lower = diff.toLowerCase()
@@ -340,9 +348,10 @@ function mapRecipeExtractionToRecipe(
   const instructions = (data.instructions || []).filter((inst): inst is string => inst !== null)
   const dietaryTags = (data.dietaryTags || []).filter((tag): tag is string => tag !== null)
   
-  const prepTime = parseNumericValue(data.prepTime)
-  const cookTime = parseNumericValue(data.cookTime)
-  const servings = parseNumericValue(data.servings)
+  // Use parseIntegerValue for INTEGER database fields
+  const prepTime = parseIntegerValue(data.prepTime)
+  const cookTime = parseIntegerValue(data.cookTime)
+  const servings = parseIntegerValue(data.servings)
 
   return {
     title: data.title || metadata.title || 'Untitled Recipe',

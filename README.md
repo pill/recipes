@@ -68,6 +68,35 @@ npm run client:load -- "data/stage/*.json" 100
 
 **Prerequisites:** Database must be running and configured (see docker setup below)
 
+### Search with Elasticsearch
+
+Enable full-text search and recommendations:
+
+```bash
+# 1. Start Elasticsearch and Kibana
+npm run docker:start:search
+
+# 2. Wait ~30 seconds for Elasticsearch to be ready
+
+# 3. Sync recipes from database to Elasticsearch
+npm install  # Install @elastic/elasticsearch
+npm run sync:search
+
+# Access Kibana at http://localhost:5601
+# Access Elasticsearch at http://localhost:9200
+```
+
+**Test your search:**
+```bash
+# Search for recipes
+curl "http://localhost:9200/recipes/_search?q=chicken&pretty"
+
+# Count recipes
+curl "http://localhost:9200/recipes/_count?pretty"
+```
+
+See [ELASTICSEARCH_GUIDE.md](./ELASTICSEARCH_GUIDE.md) for complete search documentation.
+
 ---
 
 **📚 Complete Pipeline Guide**: See [PIPELINE_EXAMPLE.md](./PIPELINE_EXAMPLE.md) for end-to-end examples of processing hundreds of recipes from CSV to database.
@@ -80,6 +109,8 @@ npm run client:load -- "data/stage/*.json" 100
 ## Tech (so far)
 - Typescript
 - Postgres
+- Elasticsearch
+    - full-text search and recommendations
 - Vercel AI
     - standardized interaction with AI models
 - Zod
