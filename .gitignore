@@ -113,14 +113,8 @@ public
 *.sln
 *.sw?
 
-# Local development data (keep structure but ignore content)
-data/raw/*.csv
-data/stage/*
-data/archive.zip
-data/.DS_Store
-!data/raw/.gitkeep
-!data/stage/.gitkeep
-!data/samples/
+# Local development data
+data/
 
 # Docker
 .dockerignore

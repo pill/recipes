@@ -12,7 +12,7 @@ Example: node dist/src/utils/csv_to_json.js data/raw/Reddit_Recipes.csv 5
 The script will:
 - Extract the specified entry from the CSV file
 - Process it using AI to extract structured recipe data
-- Save to ../data/stage/ with filename: {csv_filename}_entry_{number}.json
+- Save to ../data/stage/{csv_filename}/ with filename: entry_{number}.json
 - Skip processing if the output file already exists
 */
 
@@ -54,9 +54,9 @@ async function processRecipeEntry(csvFilePath: string, entryNumber: number) {
   }
 
   // Define output file path
-  const outputDir = path.join(path.dirname(csvFilePath), '..', 'stage')
   const csvFileName = path.basename(csvFilePath, '.csv')
-  const outputFilePath = path.join(outputDir, `${csvFileName}_entry_${entryNumber}.json`)
+  const outputDir = path.join(path.dirname(csvFilePath), '..', 'stage', csvFileName)
+  const outputFilePath = path.join(outputDir, `entry_${entryNumber}.json`)
 
   // Create output directory if it doesn't exist
   if (!fs.existsSync(outputDir)) {
