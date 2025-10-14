@@ -1,12 +1,23 @@
 import { proxyActivities, sleep } from '@temporalio/workflow'
 import type * as activities from './activities'
 
-// Proxy activities with timeout settings
+// Proxy activities with timeout settings (AI-based processing)
 const { processRecipeEntry, loadJsonToDb } = proxyActivities<typeof activities>({
   startToCloseTimeout: '10 minutes', // Max time for a single recipe extraction/load
   retry: {
     initialInterval: '5s',
     maximumInterval: '1m',
+    maximumAttempts: 3,
+    backoffCoefficient: 2
+  }
+})
+
+// Proxy activities for local parsing (no AI - faster timeout)
+const { processRecipeEntryLocal } = proxyActivities<typeof activities>({
+  startToCloseTimeout: '2 minutes', // Local parsing is much faster
+  retry: {
+    initialInterval: '2s',
+    maximumInterval: '30s',
     maximumAttempts: 3,
     backoffCoefficient: 2
   }
@@ -106,6 +117,86 @@ export async function processRecipeBatch(
 
   console.log(`[Workflow] Batch processing complete!`)
   console.log(`[Workflow] Total: ${results.totalProcessed}, Success: ${results.successful}, Skipped: ${results.skipped}, Failed: ${results.failed}`)
+
+  return results
+}
+
+/**
+ * Workflow to process a batch of recipe entries using LOCAL parsing (no AI)
+ * 
+ * This workflow is much faster and free since it doesn't use AI APIs.
+ * Uses pattern matching to extract recipe data.
+ */
+export async function processRecipeBatchLocal(
+  input: ProcessRecipeBatchInput
+): Promise<ProcessRecipeBatchResult> {
+  const { csvFilePath, startEntry, endEntry, delayBetweenActivitiesMs = 100 } = input
+
+  console.log(`[Workflow Local] Processing entries ${startEntry} to ${endEntry} from ${csvFilePath}`)
+  console.log(`[Workflow Local] Using LOCAL parsing (no AI) - faster and free!`)
+  console.log(`[Workflow Local] Delay between activities: ${delayBetweenActivitiesMs}ms`)
+
+  const results: ProcessRecipeBatchResult = {
+    totalProcessed: 0,
+    successful: 0,
+    skipped: 0,
+    failed: 0,
+    results: []
+  }
+
+  // Process each entry sequentially
+  for (let entryNumber = startEntry; entryNumber <= endEntry; entryNumber++) {
+    console.log(`[Workflow Local] Processing entry ${entryNumber}/${endEntry}`)
+
+    try {
+      const result = await processRecipeEntryLocal({
+        csvFilePath,
+        entryNumber
+      })
+
+      results.totalProcessed++
+
+      if (result.success) {
+        if (result.skipped) {
+          console.log(`[Workflow Local] Entry ${entryNumber} skipped (already exists)`)
+          results.skipped++
+        } else {
+          console.log(`[Workflow Local] Entry ${entryNumber} processed successfully`)
+          results.successful++
+        }
+      } else {
+        results.failed++
+      }
+
+      results.results.push({
+        entryNumber: result.entryNumber,
+        success: result.success,
+        skipped: result.skipped,
+        outputFilePath: result.outputFilePath,
+        error: result.error
+      })
+
+      // Add small delay between activities (local parsing is fast, so we can use shorter delays)
+      if (entryNumber < endEntry && delayBetweenActivitiesMs > 0) {
+        console.log(`[Workflow Local] Sleeping for ${delayBetweenActivitiesMs}ms...`)
+        await sleep(delayBetweenActivitiesMs)
+      }
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error)
+      console.error(`[Workflow Local] Error processing entry ${entryNumber}:`, errorMessage)
+      
+      results.totalProcessed++
+      results.failed++
+      results.results.push({
+        entryNumber,
+        success: false,
+        error: errorMessage
+      })
+    }
+  }
+
+  console.log(`[Workflow Local] Batch processing complete!`)
+  console.log(`[Workflow Local] Total: ${results.totalProcessed}, Success: ${results.successful}, Skipped: ${results.skipped}, Failed: ${results.failed}`)
 
   return results
 }

@@ -10,24 +10,41 @@ I'm just playing with some AI tools, (Vercel + Claude) to parse the data.
 
 ### Transform one recipe from CSV (single entry)
 
-**Reddit recipes:**
+**Reddit recipes (with AI):**
 ```bash
 npm run build
 node dist/src/utils/reddit_csv_to_json.js data/raw/Reddit_Recipes.csv 5
 cat data/stage/Reddit_Recipes/entry_5.json
 ```
 
-**Stromberg recipes:**
+**Reddit recipes (local parsing - no AI, free!):**
+```bash
+npm run build
+node dist/src/utils/reddit_csv_to_json_local.js data/raw/Reddit_Recipes.csv 5
+cat data/stage/Reddit_Recipes/entry_5.json
+```
+
+**Stromberg recipes (with AI):**
 ```bash
 npm run build
 node dist/src/utils/stromberg_csv_to_json.js data/raw/stromberg_data.csv 5
 cat data/stage/stromberg_data/entry_5.json
 ```
 
+**Stromberg recipes (local parsing - no AI, free!):**
+```bash
+npm run build
+node dist/src/utils/stromberg_csv_to_json_local.js data/raw/stromberg_data.csv 5
+cat data/stage/stromberg_data/entry_5.json
+```
+
+💡 **Tip**: Use the local parsers for fast, free processing. They use pattern matching to extract ingredients and instructions. Use AI parsers for better accuracy with messy/unstructured recipes.
+
 ### Transform multiple recipes using Temporal workflows (recommended for batches)
 
 **Prerequisites:** Install and start Temporal server (see [TEMPORAL_GUIDE.md](./TEMPORAL_GUIDE.md))
 
+**With AI (slower, costs money):**
 ```bash
 # Terminal 1: Start the worker
 npm run worker
@@ -39,6 +56,29 @@ npm run client -- data/raw/Reddit_Recipes.csv 1 20 1500
 # Stromberg recipes:
 npm run client -- data/raw/stromberg_data.csv 1 20 1500
 ```
+
+**With LOCAL parsing (faster, FREE!):**
+```bash
+# Terminal 1: Start the worker
+npm run worker
+
+# Terminal 2: Process entries 1-100 with 50ms delay (much faster!)
+# Reddit recipes:
+npm run client:local -- data/raw/Reddit_Recipes.csv 1 100 50
+
+# Stromberg recipes:
+npm run client:local -- data/raw/stromberg_data.csv 1 100 50
+```
+
+**Comparison:**
+
+| Feature | AI Parsing | Local Parsing |
+|---------|-----------|---------------|
+| **Speed** | ~1.5s per recipe | ~0.05s per recipe (30x faster) |
+| **Cost** | ~$0.001-0.01 per recipe | **FREE** |
+| **Accuracy** | Excellent for messy text | Good for structured data |
+| **Best for** | Unstructured Reddit posts | Stromberg dataset, well-formatted recipes |
+| **100 recipes** | ~3 minutes + API costs | ~5 seconds, free |
 
 **Benefits:**
 - Built-in rate limiting to avoid API limits
@@ -119,9 +159,6 @@ See [ELASTICSEARCH_GUIDE.md](./ELASTICSEARCH_GUIDE.md) for complete search docum
 
 
 
-
-
-
 ## Tech (so far)
 - Typescript
 - Postgres
@@ -137,6 +174,12 @@ See [ELASTICSEARCH_GUIDE.md](./ELASTICSEARCH_GUIDE.md) for complete search docum
 
 
 ## Ideas
+### v1
+- Call LLM directly on each recipe
+- Separate scripts for different raw data
+
+### v1.1
+- Have LLM create transform scripts to avoid calling LLM over and over
 
 ### Extract
 - category

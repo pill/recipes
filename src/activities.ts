@@ -8,6 +8,7 @@ config()
 import { getAIService } from './services/AIService.js'
 import { RecipeExtractionSchema } from './schemas/recipe-extraction.js'
 import { pool } from './database.js'
+import { parseRedditRecipeLocal, parseStrombergRecipeLocal } from './utils/shared_parser.js'
 import { RecipeService } from './services/RecipeService.js'
 import type { Recipe, RecipeIngredient } from './models/Recipe.js'
 import type { RecipeExtraction } from './schemas/recipe-extraction.js'
@@ -271,6 +272,260 @@ async function findCsvEntry(csvFilePath: string, entryNumber: number): Promise<R
       })
   })
 }
+
+/**
+ * Activity to process a single CSV entry using LOCAL parsing (no AI)
+ */
+export async function processRecipeEntryLocal(
+  input: ProcessRecipeEntryInput
+): Promise<ProcessRecipeEntryResult> {
+  const { csvFilePath, entryNumber } = input
+
+  try {
+    // Validate entry number
+    if (entryNumber < 1) {
+      throw new Error('Entry number must be >= 1')
+    }
+
+    // Check if CSV file exists
+    if (!fs.existsSync(csvFilePath)) {
+      throw new Error(`CSV file not found: ${csvFilePath}`)
+    }
+
+    // Define output file path with new subfolder structure
+    const csvFileName = path.basename(csvFilePath, '.csv')
+    const outputDir = path.join(path.dirname(csvFilePath), '..', 'stage', csvFileName)
+    const outputFilePath = path.join(outputDir, `entry_${entryNumber}.json`)
+
+    // Create output directory if it doesn't exist
+    if (!fs.existsSync(outputDir)) {
+      fs.mkdirSync(outputDir, { recursive: true })
+    }
+
+    // Check if output file already exists
+    if (fs.existsSync(outputFilePath)) {
+      console.log(`[Activity Local] Output file already exists: ${outputFilePath}`)
+      return {
+        success: true,
+        skipped: true,
+        outputFilePath,
+        entryNumber
+      }
+    }
+
+    console.log(`[Activity Local] Processing entry ${entryNumber} from ${csvFilePath}...`)
+
+    // Detect CSV format based on filename
+    const isStromberg = csvFileName.toLowerCase().includes('stromberg')
+    
+    // Find the target entry in the CSV
+    const targetRow = await findCsvEntry(csvFilePath, entryNumber)
+
+    if (!targetRow) {
+      throw new Error(`Entry ${entryNumber} not found in CSV file`)
+    }
+
+    let output: any
+
+    if (isStromberg) {
+      const row = targetRow as StrombergRowData
+      console.log(`[Activity Local] Found Stromberg entry ${entryNumber}:`)
+      console.log(`  Title: ${row.title}`)
+      console.log(`  Source: ${row.source}`)
+
+      const recipeData = parseStrombergRecipeLocalActivity(row)
+      console.log(`  Found ${recipeData.ingredients.length} ingredients (local parsing)`)
+      console.log(`  Found ${recipeData.instructions.length} instruction steps`)
+
+      output = {
+        entryNumber,
+        metadata: {
+          title: row.title,
+          link: row.link,
+          source: row.source,
+          site: row.site,
+          ner: row.NER
+        },
+        recipeData
+      }
+    } else {
+      // Reddit format
+      const row = targetRow as RedditRowData
+      console.log(`[Activity Local] Found Reddit entry ${entryNumber}:`)
+      console.log(`  Title: ${row.title}`)
+      console.log(`  User: ${row.user}`)
+
+      const recipeData = parseRedditRecipeLocalActivity(row)
+      console.log(`  Found ${recipeData.ingredients.length} ingredients (local parsing)`)
+      console.log(`  Found ${recipeData.instructions.length} instruction steps`)
+
+      output = {
+        entryNumber,
+        metadata: {
+          title: row.title,
+          user: row.user,
+          date: row.date,
+          num_comments: row.num_comments,
+          n_char: row.n_char
+        },
+        recipeData
+      }
+    }
+
+    fs.writeFileSync(outputFilePath, JSON.stringify(output, null, 2))
+    console.log(`[Activity Local] Successfully saved to: ${outputFilePath}`)
+
+    return {
+      success: true,
+      outputFilePath,
+      entryNumber
+    }
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error)
+    console.error(`[Activity Local] Error processing entry ${entryNumber}:`, errorMessage)
+    return {
+      success: false,
+      error: errorMessage,
+      entryNumber
+    }
+  }
+}
+
+// ============================================================================
+// Local Parsing Functions (No AI)
+// ============================================================================
+
+type Ingredient = {
+  name: string
+  quantity?: number | string | null
+  unit?: string | null
+  notes?: string | null
+}
+
+type RecipeData = {
+  title: string
+  description?: string | null
+  ingredients: Ingredient[]
+  instructions: string[]
+  prepTime?: string | null
+  cookTime?: string | null
+  totalTime?: string | null
+  servings?: number | string | null
+  difficulty?: string | null
+  cuisine?: string | null
+  course?: string | null
+  mealType?: string | null
+  dietaryTags?: string[] | null
+}
+
+const COMMON_UNITS = [
+  'cup', 'cups', 'c', 'c.',
+  'tablespoon', 'tablespoons', 'tbsp', 'tbsp.', 'tbs', 'tbs.', 'T', 'Tbsp', 'Tbsp.',
+  'teaspoon', 'teaspoons', 'tsp', 'tsp.', 't',
+  'pound', 'pounds', 'lb', 'lbs', 'lb.', 'lbs.',
+  'ounce', 'ounces', 'oz', 'oz.',
+  'gram', 'grams', 'g', 'g.',
+  'kilogram', 'kilograms', 'kg', 'kg.',
+  'milliliter', 'milliliters', 'ml', 'ml.',
+  'liter', 'liters', 'l', 'l.',
+  'quart', 'quarts', 'qt', 'qt.',
+  'pint', 'pints', 'pt', 'pt.',
+  'gallon', 'gallons', 'gal', 'gal.',
+  'pinch', 'dash', 'handful',
+  'can', 'cans', 'jar', 'jars', 'package', 'packages', 'pkg', 'box', 'boxes',
+  'clove', 'cloves', 'piece', 'pieces', 'slice', 'slices',
+  'stick', 'sticks', 'head', 'heads', 'bunch', 'bunches'
+]
+
+function parseIngredientText(ingredientText: string): Ingredient {
+  let text = ingredientText.trim()
+  let quantity: number | string | null = null
+  let unit: string | null = null
+  let notes: string | null = null
+  
+  // Extract notes in parentheses first
+  const notesMatch = text.match(/\(([^)]+)\)/)
+  if (notesMatch) {
+    notes = notesMatch[1]
+    text = text.replace(notesMatch[0], '').trim()
+  }
+  
+  // Try to match range (e.g., "1-2 cups")
+  const rangeMatch = text.match(/^(\d+\.?\d*)\s*-\s*(\d+\.?\d*)/)
+  if (rangeMatch) {
+    quantity = `${rangeMatch[1]}-${rangeMatch[2]}`
+    text = text.substring(rangeMatch[0].length).trim()
+  }
+  // Try to match fraction (e.g., "1/2" or "1 1/2")
+  else {
+    const fractionMatch = text.match(/^(\d+\/\d+|\d+\s+\d+\/\d+)/)
+    if (fractionMatch) {
+      quantity = fractionMatch[0].trim()
+      text = text.substring(fractionMatch[0].length).trim()
+    }
+    // Try to match regular number
+    else {
+      const numberMatch = text.match(/^(\d+\.?\d*)/)
+      if (numberMatch) {
+        const num = parseFloat(numberMatch[0])
+        if (!isNaN(num)) {
+          quantity = num
+          text = text.substring(numberMatch[0].length).trim()
+        }
+      }
+    }
+  }
+  
+  // Try to find unit at the beginning of remaining text
+  const textLower = text.toLowerCase()
+  for (const u of COMMON_UNITS) {
+    const unitRegex = new RegExp(`^${u}\\b`, 'i')
+    if (unitRegex.test(textLower)) {
+      unit = u
+      text = text.substring(u.length).trim()
+      text = text.replace(/^[s\.]?\s*/, '')
+      break
+    }
+  }
+  
+  const name = text.trim()
+  const ingredient: Ingredient = { name }
+  if (quantity !== null) ingredient.quantity = quantity
+  if (unit !== null) ingredient.unit = unit
+  if (notes !== null) ingredient.notes = notes
+  
+  return ingredient
+}
+
+function parseRedditRecipeLocalActivity(row: RedditRowData): RecipeData {
+  // Use shared parser function
+  return parseRedditRecipeLocal(row.comment, row.title)
+}
+
+// Old duplicated parsing logic removed - now using shared_parser.ts
+
+function parseStrombergRecipeLocalActivity(row: StrombergRowData): RecipeData {
+  // Parse the ingredients and directions arrays from JSON strings
+  let ingredientsArray: string[] = []
+  let directionsArray: string[] = []
+  
+  try {
+    ingredientsArray = JSON.parse(row.ingredients)
+  } catch (e) {
+    ingredientsArray = [row.ingredients]
+  }
+  
+  try {
+    directionsArray = JSON.parse(row.directions)
+  } catch (e) {
+    directionsArray = [row.directions]
+  }
+  
+  // Use shared parser function
+  return parseStrombergRecipeLocal(ingredientsArray, directionsArray, row.title)
+}
+
+// Old duplicated Stromberg parsing logic removed - now using shared_parser.ts
 
 // ============================================================================
 // Database Loading Activities
