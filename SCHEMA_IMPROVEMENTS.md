@@ -156,8 +156,8 @@ If you had entries that failed before, you can now retry them:
 
 ```bash
 # Re-extract specific entries
-node dist/src/utils/csv_to_json.js data/raw/Reddit_Recipes.csv 1
-node dist/src/utils/csv_to_json.js data/raw/Reddit_Recipes.csv 4
+node dist/src/utils/reddit_csv_to_json.js data/raw/Reddit_Recipes.csv 1
+node dist/src/utils/reddit_csv_to_json.js data/raw/Reddit_Recipes.csv 4
 
 # Load to database
 node dist/src/utils/load_json_to_db.js data/stage/Reddit_Recipes_entry_1.json

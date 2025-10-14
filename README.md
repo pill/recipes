@@ -1,15 +1,27 @@
 # Recipes
 
 First dataset is Reddit Recipes from [kaggle](https://www.kaggle.com/datasets/michau96/recipes-from-reddit)
-I'm just playing with some AI tools to parse the data.
+
+Second dataset is from [here ](https://www.kaggle.com/datasets/wilmerarltstrmberg/recipe-dataset-over-2m)
+
+I'm just playing with some AI tools, (Vercel + Claude) to parse the data.
 
 ## Running things
 
 ### Transform one recipe from CSV (single entry)
+
+**Reddit recipes:**
 ```bash
 npm run build
-node dist/src/utils/csv_to_json.js data/raw/Reddit_Recipes.csv 5
-cat data/stage/Reddit_Recipes_entry_5.json
+node dist/src/utils/reddit_csv_to_json.js data/raw/Reddit_Recipes.csv 5
+cat data/stage/Reddit_Recipes/entry_5.json
+```
+
+**Stromberg recipes:**
+```bash
+npm run build
+node dist/src/utils/stromberg_csv_to_json.js data/raw/stromberg_data.csv 5
+cat data/stage/stromberg_data/entry_5.json
 ```
 
 ### Transform multiple recipes using Temporal workflows (recommended for batches)
@@ -21,7 +33,11 @@ cat data/stage/Reddit_Recipes_entry_5.json
 npm run worker
 
 # Terminal 2: Process entries 1-20 with 1.5 second delay between each
+# Reddit recipes:
 npm run client -- data/raw/Reddit_Recipes.csv 1 20 1500
+
+# Stromberg recipes:
+npm run client -- data/raw/stromberg_data.csv 1 20 1500
 ```
 
 **Benefits:**

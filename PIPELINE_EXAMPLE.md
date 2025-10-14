@@ -38,7 +38,7 @@ npm run setup-db
 ### Step 1: Extract one recipe from CSV
 ```bash
 npm run build
-node dist/src/utils/csv_to_json.js data/raw/Reddit_Recipes.csv 1
+node dist/src/utils/reddit_csv_to_json.js data/raw/Reddit_Recipes.csv 1
 ```
 
 **Output**: `data/stage/Reddit_Recipes_entry_1.json`
@@ -227,7 +227,7 @@ If some entries failed during extraction:
 ```bash
 # Check workflow results in Temporal UI for failed entry numbers
 # Then re-process specific entries:
-node dist/src/utils/csv_to_json.js data/raw/Reddit_Recipes.csv 42
+node dist/src/utils/reddit_csv_to_json.js data/raw/Reddit_Recipes.csv 42
 node dist/src/utils/load_json_to_db.js data/stage/Reddit_Recipes_entry_42.json
 ```
 

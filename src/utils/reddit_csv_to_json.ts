@@ -6,8 +6,8 @@ import { config } from 'dotenv'
 /*
 This script will parse a single Reddit recipe entry from CSV into JSON using AI.
 
-Usage: node dist/src/utils/csv_to_json.js <csv-file-path> <entry-number>
-Example: node dist/src/utils/csv_to_json.js data/raw/Reddit_Recipes.csv 5
+Usage: node dist/src/utils/reddit_csv_to_json.js <csv-file-path> <entry-number>
+Example: node dist/src/utils/reddit_csv_to_json.js data/raw/Reddit_Recipes.csv 5
 
 The script will:
 - Extract the specified entry from the CSV file
@@ -160,8 +160,8 @@ If the text is not a recipe at all, still try to extract any food-related inform
 const args = process.argv.slice(2)
 
 if (args.length < 2) {
-  console.error('Usage: node dist/src/utils/csv_to_json.js <csv-file-path> <entry-number>')
-  console.error('Example: node dist/src/utils/csv_to_json.js data/raw/Reddit_Recipes.csv 5')
+  console.error('Usage: node dist/src/utils/reddit_csv_to_json.js <csv-file-path> <entry-number>')
+  console.error('Example: node dist/src/utils/reddit_csv_to_json.js data/raw/Reddit_Recipes.csv 5')
   process.exit(1)
 }
 
