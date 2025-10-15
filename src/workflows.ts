@@ -343,6 +343,12 @@ export interface LoadRecipesToDbInput {
   delayBetweenActivitiesMs?: number // Delay between database inserts (default: 100ms)
 }
 
+export interface LoadRecipesToDbParallelInput {
+  jsonFilePaths: string[] // Array of JSON file paths to load
+  batchSize?: number // Number of files to process in parallel (default: 10)
+  delayBetweenBatchesMs?: number // Delay between batches (default: 0)
+}
+
 export interface LoadRecipesToDbResult {
   totalProcessed: number
   successful: number
@@ -429,6 +435,124 @@ export async function loadRecipesToDb(
 
   console.log(`[Workflow] Database loading complete!`)
   console.log(`[Workflow] Total: ${results.totalProcessed}, Success: ${results.successful}, Already Exists: ${results.alreadyExists}, Failed: ${results.failed}`)
+
+  return results
+}
+
+/**
+ * PARALLELIZED Workflow to load multiple recipe JSON files into the database
+ * 
+ * This workflow processes files in parallel batches for maximum speed.
+ * Perfect for bulk database loading since database operations can handle parallel load.
+ */
+export async function loadRecipesToDbParallel(
+  input: LoadRecipesToDbParallelInput
+): Promise<LoadRecipesToDbResult> {
+  const { jsonFilePaths, batchSize = 10, delayBetweenBatchesMs = 0 } = input
+
+  console.log(`[Workflow Parallel] Loading ${jsonFilePaths.length} recipe files to database`)
+  console.log(`[Workflow Parallel] Batch size: ${batchSize}, Delay between batches: ${delayBetweenBatchesMs}ms`)
+
+  const results: LoadRecipesToDbResult = {
+    totalProcessed: 0,
+    successful: 0,
+    alreadyExists: 0,
+    failed: 0,
+    results: []
+  }
+
+  // Create batches of files to process in parallel
+  const batches: string[][] = []
+  
+  for (let i = 0; i < jsonFilePaths.length; i += batchSize) {
+    const batch = jsonFilePaths.slice(i, i + batchSize)
+    batches.push(batch)
+  }
+
+  console.log(`[Workflow Parallel] Created ${batches.length} batches`)
+
+  // Process each batch in parallel
+  for (let batchIndex = 0; batchIndex < batches.length; batchIndex++) {
+    const batch = batches[batchIndex]
+    console.log(`[Workflow Parallel] Processing batch ${batchIndex + 1}/${batches.length} (${batch.length} files)`)
+
+    // Process all files in this batch in parallel
+    const batchPromises = batch.map(async (jsonFilePath) => {
+      try {
+        const result = await loadJsonToDb({ jsonFilePath })
+
+        if (result.success) {
+          if (result.alreadyExists) {
+            return {
+              jsonFilePath: result.jsonFilePath,
+              success: result.success,
+              recipeId: result.recipeId,
+              title: result.title,
+              alreadyExists: result.alreadyExists,
+              error: result.error
+            }
+          } else {
+            return {
+              jsonFilePath: result.jsonFilePath,
+              success: result.success,
+              recipeId: result.recipeId,
+              title: result.title,
+              alreadyExists: result.alreadyExists,
+              error: result.error
+            }
+          }
+        } else {
+          console.error(`[Workflow Parallel] Failed to load ${jsonFilePath}: ${result.error}`)
+          return {
+            jsonFilePath: result.jsonFilePath,
+            success: result.success,
+            recipeId: result.recipeId,
+            title: result.title,
+            alreadyExists: result.alreadyExists,
+            error: result.error
+          }
+        }
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : String(error)
+        console.error(`[Workflow Parallel] Error loading file ${jsonFilePath}:`, errorMessage)
+        
+        return {
+          jsonFilePath,
+          success: false,
+          error: errorMessage
+        }
+      }
+    })
+
+    // Wait for all files in this batch to complete
+    const batchResults = await Promise.all(batchPromises)
+
+    // Update overall results
+    for (const result of batchResults) {
+      results.totalProcessed++
+      
+      if (result.success) {
+        if (result.alreadyExists) {
+          results.alreadyExists++
+        } else {
+          results.successful++
+        }
+      } else {
+        results.failed++
+      }
+      
+      results.results.push(result)
+    }
+
+    // Add delay between batches if specified (except for last batch)
+    if (batchIndex < batches.length - 1 && delayBetweenBatchesMs > 0) {
+      console.log(`[Workflow Parallel] Sleeping for ${delayBetweenBatchesMs}ms between batches...`)
+      await sleep(delayBetweenBatchesMs)
+    }
+  }
+
+  console.log(`[Workflow Parallel] Database loading complete!`)
+  console.log(`[Workflow Parallel] Total: ${results.totalProcessed}, Success: ${results.successful}, Already Exists: ${results.alreadyExists}, Failed: ${results.failed}`)
 
   return results
 }

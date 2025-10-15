@@ -132,6 +132,21 @@ npm run client:load -- data/stage/
 npm run client:load -- "data/stage/*.json" 100
 ```
 
+**PARALLELIZED batch loading (fastest - using Temporal):**
+```bash
+# Terminal 1: Start the worker (if not already running)
+npm run worker
+
+# Terminal 2: Load all JSON files with parallel batches (fastest!)
+npm run client:load:parallel -- data/stage/ 15 0
+
+# Load specific directory with custom batch size
+npm run client:load:parallel -- data/stage/stromberg_data/ 20 0
+
+# Load with delay between batches (if needed)
+npm run client:load:parallel -- data/stage/Reddit_Recipes/ 10 50
+```
+
 **Features:**
 - Automatically checks if recipe already exists (by title)
 - Skips duplicate recipes
