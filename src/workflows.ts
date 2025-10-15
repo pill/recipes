@@ -30,6 +30,14 @@ export interface ProcessRecipeBatchInput {
   delayBetweenActivitiesMs?: number // Delay to throttle API calls
 }
 
+export interface ProcessRecipeBatchParallelInput {
+  csvFilePath: string
+  startEntry: number
+  endEntry: number
+  batchSize?: number // Number of entries to process in parallel (default: 5)
+  delayBetweenBatchesMs?: number // Delay between batches (default: 0)
+}
+
 export interface ProcessRecipeBatchResult {
   totalProcessed: number
   successful: number
@@ -197,6 +205,131 @@ export async function processRecipeBatchLocal(
 
   console.log(`[Workflow Local] Batch processing complete!`)
   console.log(`[Workflow Local] Total: ${results.totalProcessed}, Success: ${results.successful}, Skipped: ${results.skipped}, Failed: ${results.failed}`)
+
+  return results
+}
+
+/**
+ * PARALLELIZED Workflow to process a batch of recipe entries using LOCAL parsing (no AI)
+ * 
+ * This workflow processes entries in parallel batches for maximum speed.
+ * Perfect for local parsing since there are no API rate limits to worry about.
+ */
+export async function processRecipeBatchLocalParallel(
+  input: ProcessRecipeBatchParallelInput
+): Promise<ProcessRecipeBatchResult> {
+  const { csvFilePath, startEntry, endEntry, batchSize = 5, delayBetweenBatchesMs = 0 } = input
+
+  console.log(`[Workflow Local Parallel] Processing entries ${startEntry} to ${endEntry} from ${csvFilePath}`)
+  console.log(`[Workflow Local Parallel] Using LOCAL parsing (no AI) - faster and free!`)
+  console.log(`[Workflow Local Parallel] Batch size: ${batchSize}, Delay between batches: ${delayBetweenBatchesMs}ms`)
+
+  const results: ProcessRecipeBatchResult = {
+    totalProcessed: 0,
+    successful: 0,
+    skipped: 0,
+    failed: 0,
+    results: []
+  }
+
+  // Create batches of entries to process in parallel
+  const totalEntries = endEntry - startEntry + 1
+  const batches: number[][] = []
+  
+  for (let i = 0; i < totalEntries; i += batchSize) {
+    const batch: number[] = []
+    for (let j = 0; j < batchSize && (startEntry + i + j) <= endEntry; j++) {
+      batch.push(startEntry + i + j)
+    }
+    batches.push(batch)
+  }
+
+  console.log(`[Workflow Local Parallel] Created ${batches.length} batches`)
+
+  // Process each batch in parallel
+  for (let batchIndex = 0; batchIndex < batches.length; batchIndex++) {
+    const batch = batches[batchIndex]
+    console.log(`[Workflow Local Parallel] Processing batch ${batchIndex + 1}/${batches.length} (entries: ${batch.join(', ')})`)
+
+    // Process all entries in this batch in parallel
+    const batchPromises = batch.map(async (entryNumber) => {
+      try {
+        const result = await processRecipeEntryLocal({
+          csvFilePath,
+          entryNumber
+        })
+
+        if (result.success) {
+          if (result.skipped) {
+            console.log(`[Workflow Local Parallel] Entry ${entryNumber} skipped (already exists)`)
+            return {
+              entryNumber: result.entryNumber,
+              success: result.success,
+              skipped: result.skipped,
+              outputFilePath: result.outputFilePath,
+              error: result.error
+            }
+          } else {
+            console.log(`[Workflow Local Parallel] Entry ${entryNumber} processed successfully`)
+            return {
+              entryNumber: result.entryNumber,
+              success: result.success,
+              skipped: result.skipped,
+              outputFilePath: result.outputFilePath,
+              error: result.error
+            }
+          }
+        } else {
+          console.error(`[Workflow Local Parallel] Entry ${entryNumber} failed: ${result.error}`)
+          return {
+            entryNumber: result.entryNumber,
+            success: result.success,
+            skipped: result.skipped,
+            outputFilePath: result.outputFilePath,
+            error: result.error
+          }
+        }
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : String(error)
+        console.error(`[Workflow Local Parallel] Error processing entry ${entryNumber}:`, errorMessage)
+        
+        return {
+          entryNumber,
+          success: false,
+          error: errorMessage
+        }
+      }
+    })
+
+    // Wait for all entries in this batch to complete
+    const batchResults = await Promise.all(batchPromises)
+
+    // Update overall results
+    for (const result of batchResults) {
+      results.totalProcessed++
+      
+      if (result.success) {
+        if (result.skipped) {
+          results.skipped++
+        } else {
+          results.successful++
+        }
+      } else {
+        results.failed++
+      }
+      
+      results.results.push(result)
+    }
+
+    // Add delay between batches if specified (except for last batch)
+    if (batchIndex < batches.length - 1 && delayBetweenBatchesMs > 0) {
+      console.log(`[Workflow Local Parallel] Sleeping for ${delayBetweenBatchesMs}ms between batches...`)
+      await sleep(delayBetweenBatchesMs)
+    }
+  }
+
+  console.log(`[Workflow Local Parallel] Batch processing complete!`)
+  console.log(`[Workflow Local Parallel] Total: ${results.totalProcessed}, Success: ${results.successful}, Skipped: ${results.skipped}, Failed: ${results.failed}`)
 
   return results
 }

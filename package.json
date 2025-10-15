@@ -19,6 +19,7 @@
     "worker": "tsx src/worker.ts",
     "client": "tsx src/client.ts",
     "client:local": "tsx src/client-local.ts",
+    "client:local:parallel": "tsx src/client-local-parallel.ts",
     "client:load": "tsx src/client-load-db.ts",
     "sync:search": "tsx src/utils/sync_to_elasticsearch.ts",
     "setup-db": "./scripts/setup-db.sh",

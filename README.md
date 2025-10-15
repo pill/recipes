@@ -70,15 +70,32 @@ npm run client:local -- data/raw/Reddit_Recipes.csv 1 100 50
 npm run client:local -- data/raw/stromberg_data.csv 1 100 50
 ```
 
+**With PARALLELIZED LOCAL parsing (fastest, FREE!):**
+```bash
+# Terminal 1: Start the worker
+npm run worker
+
+# Terminal 2: Process entries 1-100 with parallel batches (fastest!)
+# Reddit recipes (batch size 10, no delay between batches):
+npm run client:local:parallel -- data/raw/Reddit_Recipes.csv 1 100 10 0
+
+# Stromberg recipes (batch size 15, no delay between batches):
+npm run client:local:parallel -- data/raw/stromberg_data.csv 1 100 15 0
+
+# With delay between batches (if needed):
+npm run client:local:parallel -- data/raw/Reddit_Recipes.csv 1 100 10 100
+```
+
 **Comparison:**
 
-| Feature | AI Parsing | Local Parsing |
-|---------|-----------|---------------|
-| **Speed** | ~1.5s per recipe | ~0.05s per recipe (30x faster) |
-| **Cost** | ~$0.001-0.01 per recipe | **FREE** |
-| **Accuracy** | Excellent for messy text | Good for structured data |
-| **Best for** | Unstructured Reddit posts | Stromberg dataset, well-formatted recipes |
-| **100 recipes** | ~3 minutes + API costs | ~5 seconds, free |
+| Feature | AI Parsing | Local Parsing | Parallelized Local |
+|---------|-----------|---------------|-------------------|
+| **Speed** | ~1.5s per recipe | ~0.05s per recipe (30x faster) | ~0.05s per recipe (parallel batches) |
+| **Cost** | ~$0.001-0.01 per recipe | **FREE** | **FREE** |
+| **Accuracy** | Excellent for messy text | Good for structured data | Good for structured data |
+| **Batch Processing** | Sequential | Sequential | **Parallel batches** |
+| **Best for** | Unstructured Reddit posts | Stromberg dataset, well-formatted recipes | **Bulk processing (100s-1000s)** |
+| **100 recipes** | ~3 minutes + API costs | ~5 seconds, free | **~1-2 seconds, free** |
 
 **Benefits:**
 - Built-in rate limiting to avoid API limits
