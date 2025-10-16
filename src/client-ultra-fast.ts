@@ -10,14 +10,15 @@ import path from 'path'
  * 1. Using maximum parallel batch sizes
  * 2. Processing CSV parsing and DB loading in parallel
  * 3. Optimized for high-throughput processing
+ * 4. Supports batch-based processing for large datasets
  * 
- * Usage: npm run client:ultra -- <csv_file_path> <start_entry> <end_entry>
+ * Usage: npm run client:ultra -- <csv_file_path> <start_entry> <end_entry> [batch_size] [start_batch]
  */
 async function main() {
   const args = process.argv.slice(2)
   
   if (args.length < 3) {
-    console.log('Usage: npm run client:ultra -- <csv_file_path> <start_entry> <end_entry>')
+    console.log('Usage: npm run client:ultra -- <csv_file_path> <start_entry> <end_entry> [batch_size] [start_batch]')
     console.log('')
     console.log('Examples:')
     console.log('  # Process entries 1-1000 with maximum parallelization')
@@ -25,12 +26,20 @@ async function main() {
     console.log('')
     console.log('  # Process Stromberg entries 1-500')
     console.log('  npm run client:ultra -- data/raw/stromberg_data.csv 1 500')
+    console.log('')
+    console.log('  # Process in batches of 1000, starting from batch 5')
+    console.log('  npm run client:ultra -- data/raw/stromberg_data.csv 1 10000 1000 5')
+    console.log('')
+    console.log('  # Resume Stromberg processing from batch 10')
+    console.log('  npm run client:ultra -- data/raw/stromberg_data.csv 1 100000 1000 10')
     process.exit(1)
   }
 
   const csvFilePath = args[0]
   const startEntry = parseInt(args[1])
   const endEntry = parseInt(args[2])
+  const batchSize = args[3] ? parseInt(args[3]) : 1000
+  const startBatch = args[4] ? parseInt(args[4]) : 0
 
   // Validate arguments
   if (isNaN(startEntry) || startEntry < 1) {
@@ -43,9 +52,29 @@ async function main() {
     process.exit(1)
   }
 
+  if (isNaN(batchSize) || batchSize < 1) {
+    console.error('Error: batch_size must be a positive integer')
+    process.exit(1)
+  }
+
+  if (isNaN(startBatch) || startBatch < 0) {
+    console.error('Error: start_batch must be a non-negative integer')
+    process.exit(1)
+  }
+
+  // Calculate actual processing range based on batch parameters
+  const totalEntries = endEntry - startEntry + 1
+  const totalBatches = Math.ceil(totalEntries / batchSize)
+  const batchesToProcess = totalBatches - startBatch
+  const actualStartEntry = startEntry + (startBatch * batchSize)
+  const actualEndEntry = Math.min(actualStartEntry + (batchesToProcess * batchSize) - 1, endEntry)
+
   console.log('🚀 Starting ULTRA-FAST Parallel Processing Client')
   console.log(`📁 CSV File: ${csvFilePath}`)
-  console.log(`📊 Entries: ${startEntry} to ${endEntry} (${endEntry - startEntry + 1} total)`)
+  console.log(`📊 Total Entries: ${startEntry} to ${endEntry} (${totalEntries.toLocaleString()} total)`)
+  console.log(`📦 Batch Size: ${batchSize}`)
+  console.log(`🔄 Processing: Batches ${startBatch + 1}-${totalBatches} (${batchesToProcess} batches)`)
+  console.log(`📊 Actual Range: ${actualStartEntry} to ${actualEndEntry} (${actualEndEntry - actualStartEntry + 1} entries)`)
   console.log('⚡ Using maximum parallelization for speed!')
   console.log('')
 
@@ -69,8 +98,8 @@ async function main() {
       workflowId: `ultra-fast-csv-${Date.now()}`,
       args: [{
         csvFilePath,
-        startEntry,
-        endEntry,
+        startEntry: actualStartEntry,
+        endEntry: actualEndEntry,
         batchSize: 20, // Maximum parallel batch size
         delayBetweenBatchesMs: 0 // No delay for maximum speed
       }]
@@ -97,6 +126,13 @@ async function main() {
     const jsonFiles = fs.readdirSync(stageSubDir)
       .filter(f => f.endsWith('.json'))
       .map(f => path.join(stageSubDir, f))
+      .filter(f => {
+        // Only process files from the current batch range
+        const match = f.match(/entry_(\d+)\.json$/)
+        if (!match) return false
+        const entryNum = parseInt(match[1])
+        return entryNum >= actualStartEntry && entryNum <= actualEndEntry
+      })
       .sort()
 
     console.log(`📁 Found ${jsonFiles.length} JSON files to load`)
@@ -131,10 +167,14 @@ async function main() {
     console.log(`⚡ Speed: ~${recipesPerSecond} recipes/second`)
     console.log(`📊 CSV Success: ${csvResult.successful}/${csvResult.totalProcessed}`)
     console.log(`💾 DB Success: ${dbResult.successful}/${dbResult.totalProcessed}`)
+    console.log(`📦 Processed Batches: ${startBatch + 1}-${totalBatches} (${batchesToProcess} batches)`)
     console.log('')
     console.log('🚀 Next steps:')
     console.log('   1. Sync to Elasticsearch: npm run sync:search')
     console.log('   2. Start the React app: cd client/recipe-client && npm run dev')
+    console.log('')
+    console.log('🔄 To continue processing more batches:')
+    console.log(`   npm run client:ultra -- ${csvFilePath} ${startEntry} ${endEntry} ${batchSize} ${totalBatches}`)
     console.log('')
 
   } catch (error) {

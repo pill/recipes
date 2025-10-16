@@ -268,6 +268,7 @@ See [ELASTICSEARCH_GUIDE.md](./ELASTICSEARCH_GUIDE.md) for complete search docum
 
 ### 1.2
 - Optimize performance of csv -> JSON, JSON -> DB data processing
-- chain together workflows csv -> JSON -> DB
+- Chain together workflows csv -> JSON -> DB
+- Ingest large dataset, 2M recipes (stromberg data)
 
 

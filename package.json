@@ -23,6 +23,7 @@
     "client:load": "tsx src/client-load-db.ts",
     "client:load:parallel": "tsx src/client-load-db-parallel.ts",
     "client:ultra": "tsx src/client-ultra-fast.ts",
+    "stromberg:pipeline": "tsx src/stromberg-bulk-pipeline.ts",
     "perf:monitor": "tsx src/performance-monitor.ts",
     "sync:search": "tsx src/utils/sync_to_elasticsearch.ts",
     "setup-db": "./scripts/setup-db.sh",
