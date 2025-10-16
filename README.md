@@ -205,14 +205,6 @@ See [ELASTICSEARCH_GUIDE.md](./ELASTICSEARCH_GUIDE.md) for complete search docum
 - vitest
 
 
-## Ideas
-### v1
-- Call LLM directly on each recipe
-- Separate scripts for different raw data
-
-### v1.1
-- Have LLM create transform scripts to avoid calling LLM over and over
-
 ### Extract
 - category
 
@@ -266,6 +258,16 @@ See [ELASTICSEARCH_GUIDE.md](./ELASTICSEARCH_GUIDE.md) for complete search docum
 - vector based recommendation
 - add feedback loops to improve relevance
 
+## Improvements
+### v1
+- Call LLM directly on each recipe
+- Separate scripts for different raw data
 
+### v1.1
+- Have LLM create transform scripts to avoid calling LLM over and over
+
+### 1.2
+- Optimize performance of csv -> JSON, JSON -> DB data processing
+- chain together workflows csv -> JSON -> DB
 
 

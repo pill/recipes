@@ -168,7 +168,8 @@ function transformRecipe(dbRecipe: any) {
 async function indexRecipes(recipes: any[]) {
   console.log('Indexing recipes to Elasticsearch...')
   
-  const batchSize = 100
+  // Increased batch size for better performance
+  const batchSize = 500 // Increased from 100
   let indexed = 0
   let failed = 0
   
@@ -182,7 +183,12 @@ async function indexRecipes(recipes: any[]) {
     ])
     
     try {
-      const result = await es.bulk({ operations })
+      const result = await es.bulk({ 
+        operations,
+        // Optimize bulk request
+        refresh: false, // Don't refresh after each batch
+        timeout: '30s'
+      })
       
       if (result.errors) {
         const errorCount = result.items.filter((item: any) => item.index?.error).length

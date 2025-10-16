@@ -12,8 +12,23 @@ const dbConfig = {
   port: parseInt(process.env.DB_PORT || '5432'),
 };
 
-// Create connection pool
-export const pool = new Pool(dbConfig);
+// Create connection pool with optimized settings
+export const pool = new Pool({
+  ...dbConfig,
+  // Increase pool size for parallel processing
+  max: 20, // Maximum number of clients in the pool
+  min: 5,  // Minimum number of clients in the pool
+  // Connection timeout settings
+  connectionTimeoutMillis: 10000, // 10 seconds
+  idleTimeoutMillis: 30000, // 30 seconds
+  // Statement timeout
+  statement_timeout: 30000, // 30 seconds
+  // Query timeout
+  query_timeout: 30000, // 30 seconds
+  // Keep alive settings
+  keepAlive: true,
+  keepAliveInitialDelayMillis: 10000,
+});
 
 // Test database connection
 export async function testConnection() {
